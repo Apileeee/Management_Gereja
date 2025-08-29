@@ -29,6 +29,8 @@ $("[data-checkboxes]").each(function () {
 });
 
 $("#table-1").dataTable();
+$("#table-alat").dataTable();
+$("#table-personil").dataTable();
 
 $("#table-2").dataTable({
   "columnDefs": [
