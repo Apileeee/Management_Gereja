@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PemainMusik;
 use App\Models\AlatMusik;
+use Illuminate\Support\Facades\Storage;
 
 class PemainMusikController extends Controller
 {
@@ -47,8 +48,8 @@ class PemainMusikController extends Controller
 
         if($request->hasFile('foto')){
             // Hapus foto lama kalau ada
-            if($pemain->foto && \Storage::disk('public')->exists($pemain->foto)){
-                \Storage::disk('public')->delete($pemain->foto);
+            if($pemain->foto && Storage::disk('public')->exists($pemain->foto)){
+                Storage::disk('public')->delete($pemain->foto);
             }
 
             // Simpan foto baru
@@ -66,8 +67,8 @@ class PemainMusikController extends Controller
 
     public function destroy($id){
         $pemain = PemainMusik::findOrFail($id);
-        if($pemain->foto && \Storage::disk('public')->exists($pemain->foto)){
-            \Storage::disk('public')->delete($pemain->foto);
+        if($pemain->foto && Storage::disk('public')->exists($pemain->foto)){
+            Storage::disk('public')->delete($pemain->foto);
         }
         $pemain->delete();
         return redirect()->back()->with('success', 'Data pemain berhasil dihapus');

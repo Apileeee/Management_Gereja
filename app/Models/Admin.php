@@ -3,26 +3,34 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Admin extends Authenticatable
 {
-    protected $table = 'admin';
-    protected $primaryKey = 'id_user';
+    use Notifiable;
 
-    public $timestamps = true;
+    protected $table = 'admin'; // nama tabel
+
+    protected $primaryKey = 'id_user'; // sesuaikan primary key
+    public $incrementing = true; // jika auto-increment
+    protected $keyType = 'int'; // tipe primary key
 
     protected $fillable = [
         'nama_user',
         'password',
-        'foto',
+        'foto', 
     ];
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
-    public function getAuthIdentifierName()
+    // Mutator untuk otomatis hash password
+    public function setPasswordAttribute($password)
     {
-        return 'nama_user';
+        if ($password) { // hanya jika diisi
+            $this->attributes['password'] = bcrypt($password);
+        }
     }
 }

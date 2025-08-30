@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ibadah', function (Blueprint $table) {
-            $table->id('id_ibadah');
-            $table->string('nama_ibadah');
-            $table->text('deskripsi')->nullable();
-            $table->foreignId('id_user')->constrained('admin','id_user')->onDelete('cascade');
-            $table->timestamps();
+            $table->id(); // id otomatis
+            $table->string('nama_ibadah'); // Nama Ibadah
+            $table->text('deskripsi')->nullable(); // Deskripsi tambahan
+            $table->time('waktu_ibadah')->nullable(); // Waktu ibadah (H:i)
+            $table->timestamps(); // created_at dan updated_at
         });
     }
 

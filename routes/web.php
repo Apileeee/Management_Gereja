@@ -6,6 +6,10 @@ use App\Http\Controllers\PeriodeController;
 use App\Http\Controllers\MusikController;
 use App\Http\Controllers\AlatMusikController;
 use App\Http\Controllers\PemainMusikController;
+use App\Http\Controllers\IbadahController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\GenerateJadwalController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -45,4 +49,31 @@ Route::middleware('auth')->group(function () {
 
     // Resource CRUD Pemain Musik
     Route::resource('pemain', PemainMusikController::class)->except(['show', 'create', 'edit']);
+
+
+Route::get('/ibadah', [IbadahController::class, 'index'])->name('ibadah.index');
+Route::post('/ibadah/store', [IbadahController::class, 'store'])->name('ibadah.store');
+Route::put('/ibadah/update/{id}', [IbadahController::class, 'update'])->name('ibadah.update');
+Route::delete('/ibadah/{id}', [IbadahController::class, 'destroy'])->name('ibadah.destroy');
+
+Route::post('/ibadah/storeWaktu', [IbadahController::class, 'storeWaktu'])->name('ibadah.storeWaktu');
+Route::put('/ibadah/updateWaktu/{id}', [IbadahController::class, 'updateWaktu'])->name('ibadah.updateWaktu');
+Route::delete('/ibadah/destroyWaktu/{id}', [IbadahController::class, 'destroyWaktu'])->name('ibadah.destroyWaktu');
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
+
+Route::get('/', function () {
+    return redirect()->route('generate.jadwal');
+});
+
+// Halaman generate jadwal (GET untuk pilih periode)
+Route::get('/jadwal/generate', [GenerateJadwalController::class, 'index'])->name('generate.jadwal');
+
+// Simpan hasil generate ke DB (POST via AJAX)
+Route::post('/jadwal/generate/simpan', [GenerateJadwalController::class, 'simpanJadwal'])->name('generate.jadwal.simpan');
+Route::get('/generate', [GenerateJadwalController::class, 'index'])->name('generate.index');
+Route::post('/generate/proses', [GenerateJadwalController::class, 'proses'])->name('generate.proses');

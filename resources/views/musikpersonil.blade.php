@@ -76,13 +76,33 @@
           </div>
         </div>
         <ul class="sidebar-menu mt-3">
-          <li class="menu-header">Main Menu</li>
-          <li><a href="{{ route('dashboard') }}" class="nav-link"><i data-feather="calendar"></i><span>Data Periode</span></a></li>
-          <li class="active"><a href="{{ route('musikpersonil') }}" class="nav-link"><i data-feather="music"></i><span>Alat Musik & Personil</span></a></li>
-          <li><a href="#" class="nav-link"><i data-feather="clock"></i><span>Data Ibadah & Waktu</span></a></li>
-          <li><a href="#" class="nav-link"><i data-feather="cpu"></i><span>Generate Genetika</span></a></li>
-          <li><a href="#" class="nav-link"><i data-feather="settings"></i><span>Manajemen Profil</span></a></li>
-        </ul>
+                        <li class="menu-header">Main Menu</li>
+                        <li class="@yield('menu-periode', '')">
+                            <a href="{{ route('dashboard') }}" class="nav-link">
+                                <i data-feather="calendar"></i><span>Data Periode</span>
+                            </a>
+                        </li>
+                        <li class="@yield('menu-musik-personil', '')">
+                            <a href="{{ route('musikpersonil') }}" class="nav-link">
+                                <i data-feather="music"></i><span>Alat Musik & Personil</span>
+                            </a>
+                        </li>
+                        <li class="@yield('menu-ibadah', '')">
+                            <a href="{{ route('ibadah.index') }}" class="nav-link">
+                                <i data-feather="clock"></i><span>Data Ibadah & Waktu</span>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ request()->routeIs('generate.jadwal') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('generate.jadwal') }}">
+                                <i data-feather="calendar"></i> Generate Jadwal Ibadah
+                            </a>
+                        </li>
+                        <li class="@yield('profile', '')">
+                            <a href="{{ route('profile.edit') }}" class="nav-link">
+                                <i data-feather="settings"></i><span>Manajemen Profile</span>
+                            </a>
+                        </li>
+                    </ul>
       </aside>
     </div>
 
