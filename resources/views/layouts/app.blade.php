@@ -68,7 +68,13 @@
         <div class="main-sidebar sidebar-style-2">
                 <aside id="sidebar-wrapper">
                     <div class="sidebar-brand d-flex align-items-center p-3 border-bottom">
-                        <img alt="image" src="/assets/img/usernopp.png" class="rounded-circle" style="width:45px;height:45px;">
+                        @if(auth()->user()->foto)
+                            <img alt="image" src="{{ asset('storage/' . auth()->user()->foto) }}" 
+                                class="rounded-circle" style="width:45px;height:45px;">
+                        @else
+                            <img alt="image" src="{{ asset('assets/img/usernopp.png') }}" 
+                                class="rounded-circle" style="width:45px;height:45px;">
+                        @endif
                         <div class="ml-4 d-flex flex-column justify-content-center">
                             <span class="font-weight-bold" style="line-height:2;">Admin</span>
                             <small style="line-height:2;">Sistem Penjadwalan</small>
@@ -93,7 +99,7 @@
                         </li>
                         <li class="nav-item {{ request()->routeIs('generate.jadwal') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('generate.jadwal') }}">
-                                <i data-feather="calendar"></i> Generate Jadwal Ibadah
+                                <i data-feather="calendar"></i><span>Generate Jadwal Ibadah</span>
                             </a>
                         </li>
                         <li class="@yield('profile', '')">
@@ -224,25 +230,41 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // Logout dengan konfirmasi SweetAlert
-    $(document).on('click', '#btnLogout', function(e){
+    $(document).ready(function() {
+      // Logout
+      $(document).on('click', '#btnLogout', function(e) {
         e.preventDefault();
         Swal.fire({
-            title: 'Apakah Anda yakin?',
-            text: "Anda akan keluar dari sistem.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Iya',
-            cancelButtonText: 'Batal'
+          title: 'Apakah Anda yakin?',
+          text: "Anda akan keluar dari sistem.",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Iya',
+          cancelButtonText: 'Batal'
         }).then((result) => {
-            if(result.isConfirmed) $('#logout-form').submit();
+          if (result.isConfirmed) {
+            $('#logout-form').submit();
+          }
         });
-    });
-</script>
+      });
 
+      // Notifikasi sukses
+      @if(session('success'))
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: '{{ session("success") }}',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      @endif
+    });
+  </script>
+  
 @stack('js')
+@yield('scripts')
 
 </body>
 </html>

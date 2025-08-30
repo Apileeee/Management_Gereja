@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('ibadah_pemain', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('ibadah_id')->constrained('ibadah','id_ibadah')->onDelete('cascade');
+            $table->foreignId('ibadah_id')->constrained('ibadah')->onDelete('cascade');
             $table->foreignId('pemain_id')->constrained('pemain_musik','id_pemain')->onDelete('cascade');
             $table->timestamps();
         });

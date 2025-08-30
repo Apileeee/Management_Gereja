@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Data Ibadah dan Waktu - Penjadwalan Panggung')
 @section('page-title', 'Data Ibadah dan Waktu')
+@section('menu-ibadah', 'active')
 
 @section('content')
 <section class="section">
@@ -47,7 +48,7 @@
                                             <form action="{{ route('ibadah.destroy', $ibadah->id) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus data?')">Hapus</button>
+                                                <button type="button" class="btn btn-danger btn-sm btn-hapus-ibadah"><i class="fas fa-trash"></i> Hapus</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -86,7 +87,7 @@
                                                 <form action="{{ route('ibadah.destroyWaktu', $ibadah->id) }}" method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button class="btn btn-danger btn-sm" onclick="return confirm('Hapus waktu?')">Hapus</button>
+                                                    <button type="button" class="btn btn-danger btn-sm btn-hapus-waktu"><i class="fas fa-trash"></i> Hapus</button>
                                                 </form>
                                             </td>
                                         </tr>
@@ -127,7 +128,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </div>
@@ -167,7 +168,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </div>
@@ -199,7 +200,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
             </div>
@@ -236,7 +237,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
             </div>
@@ -254,5 +255,37 @@
 $(document).ready(function() {
     $('table').DataTable();
 });
+
+// Hapus Ibadah
+    $(document).on('click', '.btn-hapus-ibadah', function(e){
+        e.preventDefault();
+        const form = $(this).closest('form');
+        Swal.fire({
+            title: 'Hapus Data Ibadah?',
+            text: "Data ini akan dihapus!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result)=>{ if(result.isConfirmed) form.submit(); });
+    });
+
+    // Hapus Wajty
+    $(document).on('click', '.btn-hapus-waktu', function(e){
+        e.preventDefault();
+        const form = $(this).closest('form');
+        Swal.fire({
+            title: 'Hapus Data Waktu Ibadah?',
+            text: "Data ini akan dihapus!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result)=>{ if(result.isConfirmed) form.submit(); });
+    });
 </script>
 @endpush

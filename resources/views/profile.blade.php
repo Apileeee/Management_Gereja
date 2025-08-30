@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Manajemen Profil - Penjadwalan Panggung')
 @section('page-title', 'Manajemen Profil')
+@section('profile', 'active')
 
 @section('content')
 <section class="section">
@@ -8,7 +9,7 @@
         <div class="card" style="width: 600px;"> <!-- Lebar diperbesar -->
             <div class="card-body text-center p-4"> <!-- Padding ditambah -->
                 <!-- Foto Profil -->
-                <img src="{{ auth()->user()->foto ? asset('storage/' . auth()->user()->foto) : asset('img/default-user.png') }}" 
+                <img src="{{ auth()->user()->foto ? asset('storage/' . auth()->user()->foto) : asset('img/usernopp.png') }}" 
                      alt="Profil" class="rounded-circle mb-3" width="100">
 
                 <!-- Nama dan Role -->

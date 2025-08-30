@@ -66,10 +66,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
-Route::get('/', function () {
-    return redirect()->route('generate.jadwal');
-});
-
 // Halaman generate jadwal (GET untuk pilih periode)
 Route::get('/jadwal/generate', [GenerateJadwalController::class, 'index'])->name('generate.jadwal');
 

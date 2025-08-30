@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id(); // id otomatis
             $table->string('nama_ibadah'); // Nama Ibadah
             $table->text('deskripsi')->nullable(); // Deskripsi tambahan
-            $table->time('waktu_ibadah')->nullable(); // Waktu ibadah (H:i)
+            $table->datetime('waktu_ibadah')->nullable(); // Waktu ibadah (H:i)
             $table->timestamps(); // created_at dan updated_at
         });
     }
