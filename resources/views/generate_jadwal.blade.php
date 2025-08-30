@@ -135,7 +135,7 @@
                     @if(!$selectedPeriode)
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i>
-                        <strong>Petunjuk:</strong> Pilih periode layanan terlebih dahulu, kemudian klik tombol "Generate dengan AI Genetika" untuk membuat jadwal otomatis.
+                        <strong>Petunjuk:</strong> Pilih periode layanan terlebih dahulu, kemudian klik tombol "Generate dengan Genetika" untuk membuat jadwal otomatis.
                     </div>
                     @endif
                 </div>
@@ -260,10 +260,15 @@
         <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4><i class="fas fa-database"></i> Data Jadwal yang Telah Tersimpan</h4>
-                <div class="input-group" style="width: 300px;">
-                    <input type="text" class="form-control" placeholder="Cari data jadwal..." id="searchInput">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary"><i class="fas fa-search"></i></button>
+                <div class="d-flex align-items-center">
+                    @if(!empty($jadwalTersimpan) && count($jadwalTersimpan) > 0)
+                    <span class="badge badge-primary mr-3">{{ count($jadwalTersimpan) }} Data</span>
+                    @endif
+                    <div class="input-group" style="width: 300px;">
+                        <input type="text" class="form-control" placeholder="Cari data jadwal..." id="searchInput">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary"><i class="fas fa-search"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -285,14 +290,19 @@
                             <tr>
                                 <td class="text-center font-weight-bold">{{ $index + 1 }}</td>
                                 <td>
-                                    <span class="badge badge-secondary">{{ $j->periode->nama_periode }}</span>
+                                    <span class="badge badge-secondary">{{ $j->periode }}</span>
                                 </td>
-                                <td class="font-weight-bold">{{ $j->ibadah->nama_ibadah }}</td>
+                                <td class="font-weight-bold">{{ $j->nama_ibadah }}</td>
                                 <td>
                                     <i class="fas fa-clock text-primary"></i>
-                                    {{ \Carbon\Carbon::parse($j->ibadah->waktu_ibadah)->format('d-m-Y H:i') }}
+                                    {{ \Carbon\Carbon::parse($j->waktu_ibadah)->format('d-m-Y H:i') }}
                                 </td>
-                                <td>{{ $j->personil }}</td>
+                                <td>
+                                    <span class="badge-personil">
+                                        <i class="fas fa-users"></i> {{ $j->jumlah_personil }}
+                                    </span>
+                                    <div class="mt-1 small">{{ $j->personil }}</div>
+                                </td>
                                 <td>
                                     <i class="fas fa-music text-warning"></i>
                                     {{ $j->alat_musik ?: 'Tidak ada' }}
@@ -340,6 +350,7 @@
     </div>
 </div>
 @endsection
+
 
 @push('js')
 <script>

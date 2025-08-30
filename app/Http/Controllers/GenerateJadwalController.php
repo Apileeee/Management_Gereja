@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class GenerateJadwalController extends Controller
 {
-    private $populationSize = 10; // jumlah kandidat
-    private $generations = 5;     // jumlah iterasi
+    private $populationSize = 10;
+    private $generations = 5;
     private $minPersonil = 2;
     private $maxPersonil = 4;
 
@@ -22,58 +22,124 @@ class GenerateJadwalController extends Controller
         $selectedPeriode = $request->periode;
         $jadwal = [];
         $generationStats = null;
-        $jadwalTersimpan = JadwalIbadah::where('periode', $selectedPeriode)->get();
+
+        // Ambil semua jadwal yang sudah tersimpan (eager load ibadah agar relasi tidak null di blade)
+        $jadwalTersimpan = JadwalIbadah::with('ibadah')->orderBy('waktu_ibadah', 'asc')->get();
 
         if ($selectedPeriode) {
             $periode = PeriodeLayanan::find($selectedPeriode);
+            if (!$periode) {
+                return redirect()->back()->with('error', 'Periode tidak ditemukan!');
+            }
+
             $ibadahs = Ibadah::where('periode', $periode->id_periode)->get();
             $pemain = PemainMusik::with('alat')->get();
 
-            if ($ibadahs->isNotEmpty() && $pemain->isNotEmpty()) {
-                $start = microtime(true);
-
-                // 1. Generate Populasi
-                $population = $this->generatePopulation($ibadahs, $pemain);
-
-                // 2-4. Evolusi
-                for ($gen = 0; $gen < $this->generations; $gen++) {
-                    $fitnessScores = $this->evaluatePopulation($population, $pemain);
-                    $population = $this->crossoverPopulation($population, $fitnessScores);
-                    $population = $this->mutatePopulation($population, $pemain);
-                }
-
-                // 5. Ambil kandidat terbaik
-                $finalFitness = $this->evaluatePopulation($population, $pemain);
-                $bestIndex = array_search(max($finalFitness), $finalFitness);
-                $jadwal = $this->convertToSchedule($population[$bestIndex], $ibadahs, $pemain, $periode);
-
-                // 🔥 SIMPAN HASIL KE DATABASE
-                DB::transaction(function () use ($jadwal, $periode) {
-                    // hapus jadwal lama untuk periode ini
-                    JadwalIbadah::where('periode', $periode->nama_periode)->delete();
-
-                    foreach ($jadwal as $data) {
-                        JadwalIbadah::create([
-                            'periode'      => $periode->nama_periode,
-                            'nama_ibadah'  => $data['nama_ibadah'],
-                            'waktu_ibadah' => $data['waktu_ibadah'],
-                            'personil'     => $data['personil'],
-                            'alat_musik'   => $data['alat'],
-                        ]);
-                    }
-                });
-
-                $generationStats = [
-                    'generations'     => $this->generations,
-                    'execution_time'  => round(microtime(true) - $start, 3),
-                    'best_fitness'    => max($finalFitness),
-                    'total_ibadah'    => count($ibadahs),
-                    'total_pemain'    => count($pemain),
-                ];
+            if ($ibadahs->isEmpty()) {
+                return redirect()->back()->with('error', 'Tidak ada data ibadah untuk periode ini!');
             }
+
+            if ($pemain->isEmpty()) {
+                return redirect()->back()->with('error', 'Tidak ada data pemain musik!');
+            }
+
+            $start = microtime(true);
+
+            // 1. Generate Populasi
+            $population = $this->generatePopulation($ibadahs, $pemain);
+
+            // 2-4. Evolusi
+            for ($gen = 0; $gen < $this->generations; $gen++) {
+                $fitnessScores = $this->evaluatePopulation($population, $pemain);
+                $population = $this->crossoverPopulation($population, $fitnessScores);
+                $population = $this->mutatePopulation($population, $pemain);
+            }
+
+            // 5. Ambil kandidat terbaik
+            $finalFitness = $this->evaluatePopulation($population, $pemain);
+            $bestIndex = array_search(max($finalFitness), $finalFitness);
+            $jadwal = $this->convertToSchedule($population[$bestIndex], $ibadahs, $pemain, $periode);
+
+            $generationStats = [
+                'generations'     => $this->generations,
+                'execution_time'  => round(microtime(true) - $start, 3),
+                'best_fitness'    => max($finalFitness),
+                'total_ibadah'    => count($ibadahs),
+                'total_pemain'    => count($pemain),
+            ];
+
+            // Store jadwal in session untuk simpan nanti
+            session(['generated_jadwal' => $jadwal]);
         }
 
         return view('generate_jadwal', compact('periodes','selectedPeriode','jadwal','generationStats','jadwalTersimpan'));
+    }
+
+    // METHOD: Simpan jadwal ke database (dipanggil via AJAX)
+    public function simpanJadwal(Request $request)
+    {
+        try {
+            $periodeId = $request->periode_id;
+
+            if (!$periodeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Periode tidak ditemukan!'
+                ]);
+            }
+
+            $periode = PeriodeLayanan::find($periodeId);
+            if (!$periode) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data periode tidak ditemukan!'
+                ]);
+            }
+
+            // Ambil jadwal dari session
+            $jadwalData = session('generated_jadwal');
+
+            if (!$jadwalData || empty($jadwalData)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data jadwal tidak ditemukan! Silakan generate ulang.'
+                ]);
+            }
+
+            // Simpan ke database dalam transaksi
+            DB::transaction(function () use ($jadwalData, $periode) {
+                // Hapus jadwal lama untuk periode ini (menggunakan nama_periode seperti yang Anda pakai sebelumnya)
+                JadwalIbadah::where('periode', $periode->nama_periode)->delete();
+
+                // Simpan jadwal baru
+                foreach ($jadwalData as $data) {
+                    // pastikan keys sesuai dengan fillable di model JadwalIbadah:
+                    // ['periode', 'ibadah_id', 'waktu_ibadah', 'personil', 'alat_musik']
+                    JadwalIbadah::create([
+                        'periode'      => $periode->nama_periode,
+                        'ibadah_id'    => $data['ibadah_id'] ?? null,
+                        'waktu_ibadah' => $data['waktu_ibadah'] ?? null,
+                        'personil'     => $data['personil'] ?? null,
+                        'alat_musik'   => $data['alat'] ?? null,
+                    ]);
+                }
+            });
+
+            // Clear session setelah berhasil simpan
+            session()->forget('generated_jadwal');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Jadwal berhasil disimpan! Total ' . count($jadwalData) . ' jadwal ibadah telah ditambahkan.',
+            ]);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan jadwal. ' . $e->getMessage()
+            ]);
+        }
     }
 
     // ====== FUNCTION GA SAMA SEPERTI SEBELUMNYA ======
@@ -130,15 +196,17 @@ class GenerateJadwalController extends Controller
         foreach ($population as &$chromosome) {
             foreach ($chromosome as &$gen) {
                 if (rand(0,100)/100 < 0.2) {
+                    if (count($gen) === 0) continue;
                     $index = rand(0,count($gen)-1);
                     $gen[$index] = $pemainIds[array_rand($pemainIds)];
-                    $gen = array_unique($gen);
+                    $gen = array_values(array_unique($gen));
                 }
             }
         }
         return $population;
     }
 
+    // Method untuk convert ke format tampilan (view)
     private function convertToSchedule($chromosome, $ibadahs, $pemain, $periode)
     {
         $jadwal = [];
@@ -147,12 +215,16 @@ class GenerateJadwalController extends Controller
         foreach ($chromosome as $i => $gen) {
             $ibadah = $ibadahs[$i];
             $selected = $pemain->whereIn('id', $gen);
+
             $jadwal[] = [
                 'nama_ibadah'     => $ibadah->nama_ibadah,
                 'waktu_ibadah'    => $ibadah->waktu_ibadah,
                 'periode'         => $periode->nama_periode,
                 'personil'        => implode(', ', $selected->pluck('nama_pemain')->toArray()),
                 'alat'            => implode(', ', $selected->pluck('alat.nama_alat')->toArray()),
+                'jumlah_personil' => count($selected),
+                'ibadah_id'       => $ibadah->id,
+                'pemain_ids'      => $gen
             ];
         }
         return $jadwal;

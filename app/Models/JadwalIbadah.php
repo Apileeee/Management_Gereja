@@ -13,5 +13,23 @@ class JadwalIbadah extends Model
     {
         return $this->belongsTo(Ibadah::class, 'ibadah_id');
     }
+
+    public function periode_layanan()
+    {
+        return $this->belongsTo(PeriodeLayanan::class, 'periode', 'nama_periode');
+    }
+    
+    // Accessor untuk format waktu
+    public function getFormattedWaktuAttribute()
+    {
+        return $this->waktu_ibadah ? $this->waktu_ibadah->format('d-m-Y H:i') : null;
+    }
+    
+    // Accessor untuk hitung jumlah personil
+    public function getJumlahPersonilAttribute()
+    {
+        if (empty($this->personil)) return 0;
+        return count(explode(', ', $this->personil));
+    }
 }
 
