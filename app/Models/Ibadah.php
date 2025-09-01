@@ -18,4 +18,10 @@ class Ibadah extends Model
         'waktu_ibadah',
         'deskripsi',
     ];
+
+    public function periode()
+    {
+        return $this->belongsTo(PeriodeLayanan::class, 'nama_periode', 'nama_periode');
+    }
+
 }

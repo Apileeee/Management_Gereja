@@ -52,6 +52,9 @@
         vertical-align: middle !important;
         text-align: center;
     }
+    .table, .table th, .table td {
+        border: 2px solid #adb5bd !important;
+    }
     .table thead th {
         background: #343a40;
         color: #fff;
@@ -239,6 +242,9 @@
                                         <i class="fas fa-save"></i> Simpan ke Database
                                     </button>
                                 </form>
+                                <button type="button" class="btn btn-warning btn-reset-preview ml-2" id="resetPreviewBtn" style="padding: 12px 25px; font-weight: bold;">
+                                    <i class="fas fa-times"></i> Reset Preview
+                                </button>
                             </div>
                         </div>
                         
@@ -417,16 +423,21 @@ $(document).ready(function() {
     Swal.fire({
         icon: 'success',
         title: 'Berhasil!',
-        text: '{{ session('success') }}',
+        text: {!! json_encode(session('success')) !!},
         showConfirmButton: true,
         confirmButtonText: 'OK',
         confirmButtonColor: '#28a745',
-        timer: 5000,
+        timer: 10000,
         timerProgressBar: true,
         toast: false,
         position: 'center'
+    }).then(() => {
+        $('html, body').animate({
+            scrollTop: $('#previewContainer').offset().top - 100
+        }, 1000);
     });
     @endif
+
 
     // ============ ERROR NOTIFICATIONS ============
     @if(session('error'))
@@ -567,7 +578,7 @@ $(document).ready(function() {
             confirmButtonText: '<i class="fas fa-redo"></i> Ya, Generate Ulang',
             cancelButtonText: '<i class="fas fa-times"></i> Batal',
             confirmButtonColor: '#ffc107',
-            cancelButtonColor: '#6c757d',
+            cancelButtonColor: 'rgba(221, 51, 51, 0.88)',
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
@@ -678,8 +689,6 @@ $(document).ready(function() {
 
     // ============ ADDITIONAL FEATURES ============
     
-  
-
     // ============ FORM SUBMISSIONS ============
     
     // Loading spinner dengan SweetAlert untuk form generate
@@ -765,7 +774,7 @@ $(document).ready(function() {
             focusCancel: true,
             customClass: {
                 confirmButton: 'btn btn-success btn-lg',
-                cancelButton: 'btn btn-secondary btn-lg'
+                cancelButton: 'btn btn-danger btn-lg'
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -824,31 +833,6 @@ $(document).ready(function() {
             }, 1000);
         }
     });
-
-    // ============ PREVIEW SCROLL ============
-    
-    // Auto scroll ke preview dengan notification
-    @if(session('generated_jadwal'))
-    setTimeout(function() {
-        Swal.fire({
-            toast: true,
-            position: 'top',
-            icon: 'success',
-            title: 'Jadwal berhasil di-generate!',
-            text: 'Scroll ke bawah untuk melihat preview',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        });
-        
-        // Auto scroll
-        setTimeout(() => {
-            $('html, body').animate({
-                scrollTop: $('#previewContainer').offset().top - 100
-            }, 1500);
-        }, 500);
-    }, 800);
-    @endif
 
     // ============ KEYBOARD SHORTCUTS ============
     
@@ -980,6 +964,33 @@ function showSuccessWithAction(title, message, actionText, actionCallback) {
     });
 }
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const resetPreviewBtn = document.getElementById('resetPreviewBtn');
+    if (resetPreviewBtn) {
+        resetPreviewBtn.addEventListener('click', function () {
+            const previewContainer = document.getElementById('previewContainer');
+            if (previewContainer) {
+                previewContainer.style.display = 'none';
+            }
+
+            // Opsional: juga enable tombol Generate jika sebelumnya disabled
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                generateBtn.disabled = false;
+            }
+
+            // Opsional: reset form periode supaya bisa generate ulang
+            const periodeSelect = document.getElementById('periode');
+            if (periodeSelect) {
+                periodeSelect.value = '';
+            }
+        });
+    }
+});
+</script>
+
 @endpush
 
 

@@ -9,7 +9,7 @@
         <div class="card" style="width: 600px;"> <!-- Lebar diperbesar -->
             <div class="card-body text-center p-4"> <!-- Padding ditambah -->
                 <!-- Foto Profil -->
-                <img src="{{ auth()->user()->foto ? asset('storage/' . auth()->user()->foto) : asset('img/usernopp.png') }}" 
+                <img src="{{ auth()->user()->foto ? asset('storage/' . auth()->user()->foto) : asset('assets/img/usernopp.png') }}" 
                      alt="Profil" class="rounded-circle mb-3" width="100">
 
                 <!-- Nama dan Role -->

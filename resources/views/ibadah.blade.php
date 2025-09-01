@@ -33,6 +33,7 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Nama Ibadah</th>
+                                        <th>Periode</th>
                                         <th>Deskripsi</th>
                                         <th>Aksi</th>
                                     </tr>
@@ -42,6 +43,7 @@
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $ibadah->nama_ibadah }}</td>
+                                        <td>{{ $ibadah->periode->nama_periode ?? '-' }}</td>
                                         <td>{{ $ibadah->deskripsi ?? '-' }}</td>
                                         <td>
                                             <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEditIbadah{{ $ibadah->id }}">Edit</button>
@@ -69,6 +71,7 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Nama Ibadah</th>
+                                        <th>Periode</th>
                                         <th>Tanggal</th>
                                         <th>Jam</th>
                                         <th>Aksi</th>
@@ -80,8 +83,9 @@
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $ibadah->nama_ibadah }}</td>
+                                            <td>{{ $ibadah->periode->nama_periode ?? '-' }}</td>
                                             <td>{{ \Carbon\Carbon::parse($ibadah->waktu_ibadah)->format('d-m-Y') }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($ibadah->waktu_ibadah)->format('H:i') }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($ibadah->waktu_ibadah)->format('H.i') }}</td>
                                             <td>
                                                 <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEditWaktu{{ $ibadah->id }}">Edit</button>
                                                 <form action="{{ route('ibadah.destroyWaktu', $ibadah->id) }}" method="POST" class="d-inline">
@@ -97,11 +101,7 @@
                             </table>
                         </div>
                     </div>
-
-
-
                 </div>
-
             </div>
         </div>
     </div>
@@ -118,6 +118,15 @@
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label>Periode</label>
+                        <select name="nama_periode" class="form-control" required>
+                            <option value="">-- Pilih Periode --</option>
+                            @foreach($periodes as $periode)
+                                <option value="{{ $periode }}">{{ $periode }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>Nama Ibadah</label>
                         <input type="text" name="nama_ibadah" class="form-control" required>
@@ -190,6 +199,17 @@
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label>Periode</label>
+                        <select name="nama_periode" class="form-control" required>
+                            <option value="">-- Pilih Periode --</option>
+                            @foreach($periodes as $periode)
+                                <option value="{{ $periode }}" {{ $ibadah->nama_periode == $periode ? 'selected' : '' }}>
+                                    {{ $periode }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>Nama Ibadah</label>
                         <input type="text" name="nama_ibadah" class="form-control" value="{{ $ibadah->nama_ibadah }}" required>

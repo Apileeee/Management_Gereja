@@ -62,7 +62,7 @@ class PemainMusikController extends Controller
             $pemain->alat()->sync($request->alat);
         }
 
-        return redirect()->back()->with('success', 'Data pemain berhasil diupdate');
+        return redirect()->back()->with('success', 'Data pemain berhasil di ubah');
     }
 
     public function destroy($id){
