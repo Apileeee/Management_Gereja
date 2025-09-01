@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('ibadah', function (Blueprint $table) {
             $table->id(); // id otomatis
+            $table->string('nama_periode'); // Nama Ibadah
             $table->string('nama_ibadah'); // Nama Ibadah
             $table->text('deskripsi')->nullable(); // Deskripsi tambahan
             $table->datetime('waktu_ibadah')->nullable(); // Waktu ibadah (H:i)

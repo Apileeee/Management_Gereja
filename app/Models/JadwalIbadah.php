@@ -7,7 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class JadwalIbadah extends Model
 {
     protected $table = 'jadwal_ibadah';
-    protected $fillable = ['periode', 'ibadah_id', 'waktu_ibadah', 'personil', 'alat_musik'];
+    protected $fillable = [
+        'id',
+        'nama_periode',
+        'nama_ibadah',
+        'waktu_ibadah',
+        'nama_pemain',
+        'nama_alat',
+    ];
 
     public function ibadah()
     {

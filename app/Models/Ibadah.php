@@ -13,6 +13,7 @@ class Ibadah extends Model
 
     protected $primaryKey = 'id';
     protected $fillable = [
+        'nama_periode',
         'nama_ibadah',
         'waktu_ibadah',
         'deskripsi',

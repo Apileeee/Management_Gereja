@@ -11,7 +11,7 @@
         border-radius: 10px;
         padding: 20px;
         margin-bottom: 20px;
-        display: none;
+        display: {{ session('generation_stats') ? 'block' : 'none' }};
     }
     .stat-item {
         display: flex;
@@ -20,10 +20,7 @@
         padding: 5px 0;
         border-bottom: 1px solid rgba(255,255,255,0.2);
     }
-    .stat-item:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
+    .stat-item:last-child { border-bottom: none; margin-bottom: 0; }
     .loading-spinner {
         display: none;
         text-align: center;
@@ -32,16 +29,7 @@
         border-radius: 10px;
         margin: 20px 0;
     }
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-    .badge-personil {
-        background-color: #28a745;
-        color: white;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.8em;
-    }
+    .table-hover tbody tr:hover { background-color: #f8f9fa; }
     .generate-form {
         background-color: #f8f9fa;
         padding: 20px;
@@ -56,27 +44,114 @@
         box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
         transition: all 0.3s ease;
     }
-    .btn-generate:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4); }
+    .btn-generate:disabled { background: #6c757d; transform: none; box-shadow: none; }
+    .alert-info { border-left: 4px solid #17a2b8; background-color: #d1ecf1; color: #0c5460; }
+
+    .table th, .table td {
+        vertical-align: middle !important;
+        text-align: center;
     }
-    .btn-generate:disabled {
-        background: #6c757d;
-        transform: none;
-        box-shadow: none;
+    .table thead th {
+        background: #343a40;
+        color: #fff;
     }
-    .alert-info {
-        border-left: 4px solid #17a2b8;
-        background-color: #d1ecf1;
-        color: #0c5460;
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
     }
+    .table-striped tbody tr:nth-of-type(even) {
+        background-color: #f1f1f1;
+    }
+    .preview-table {
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .btn-save {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        padding: 12px 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4); }
+    .btn-regenerate {
+        background: linear-gradient(45deg, #ffc107, #e0a800);
+        border: none;
+        padding: 12px 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        transition: all 0.3s ease;
+        color: #212529;
+    }
+    .btn-regenerate:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+        color: #212529;
+    }
+    .selected-periode {
+        background-color: #e3f2fd;
+        border: 2px solid #2196f3;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .periode-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .selected-periode {
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    border-left: 5px solid #00acc1;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    }
+    .selected-periode:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .periode-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .periode-info i {
+        font-size: 2.2rem;
+        color: #00acc1;
+    }
+
+    .periode-info .periode-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .periode-text strong {
+        font-size: 1.2rem;
+        color: #007c91;
+    }
+
+    .periode-text small {
+        font-size: 0.9rem;
+        color: #555;
+}
+
 </style>
 @endpush
 
 @section('content')
 <div class="section">
     <div class="section-body">
-        
+
         {{-- Alert Messages --}}
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -84,7 +159,6 @@
                 <button type="button" class="close" data-dismiss="alert">&times;</button>
             </div>
         @endif
-
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
@@ -102,167 +176,128 @@
             </div>
             <div class="card-body">
 
-                {{-- Form untuk pilih periode dan generate --}}
+                {{-- Form pilih periode --}}
                 <div class="generate-form">
-                    <form id="generateForm" action="{{ route('generate.jadwal') }}" method="GET">
-                        <div class="row align-items-end">
-                            <div class="col-md-8">
-                                <div class="form-group mb-3">
-                                    <label for="periode" class="form-label font-weight-bold">
-                                        <i class="fas fa-calendar-alt"></i> Pilih Periode Layanan:
-                                    </label>
-                                    <select name="periode" id="periode" class="form-control form-control-lg" required>
-                                        <option value="">-- Pilih Periode --</option>
-                                        @foreach($periodes as $periode_layanan)
-                                            <option value="{{ $periode_layanan->id }}"
-                                                {{ $selectedPeriode == $periode_layanan->id ? 'selected' : '' }}>
-                                                {{ $periode_layanan->nama_periode }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <button type="submit" class="btn btn-primary btn-generate btn-lg btn-block" id="generateBtn">
-                                        <i class="fas fa-dna"></i> Generate Jadwal
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <form id="generateForm" action="{{ route('generate.jadwal') }}" method="POST" class="d-flex align-items-center" style="gap: 15px;">
+                        @csrf
+                        <select name="periode" id="periode" class="form-control form-control-lg" required style="min-width: 250px;">
+                            <option value="">-- Pilih Periode --</option>
+                            @foreach($periodes as $periode_layanan)
+                                <option value="{{ $periode_layanan->nama_periode }}"
+                                    {{ $selectedPeriode == $periode_layanan->nama_periode ? 'selected' : '' }}>
+                                    {{ $periode_layanan->nama_periode }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-generate" id="generateBtn">
+                            {{ $selectedPeriode && session('generated_jadwal') ? 'Generate' : 'Generate' }}
+                        </button>
                     </form>
-                    
-                    @if(!$selectedPeriode)
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Petunjuk:</strong> Pilih periode layanan terlebih dahulu, kemudian klik tombol "Generate dengan Genetika" untuk membuat jadwal otomatis.
-                    </div>
+
+                    @if(!$selectedPeriode && !session('generated_jadwal'))
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i>
+                            Pilih periode layanan terlebih dahulu lalu klik tombol Generate untuk melihat preview jadwal.
+                        </div>
+                    @elseif($selectedPeriode && !session('generated_jadwal'))
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Periode <strong>{{ $periodes->firstWhere('nama_periode', $selectedPeriode)->nama_periode ?? 'Unknown' }}</strong> sudah dipilih. 
+                            Klik tombol <strong>"Generate Jadwal"</strong> untuk memulai proses optimisasi.
+                        </div>
                     @endif
                 </div>
 
                 {{-- Loading Spinner --}}
                 <div class="loading-spinner" id="loadingSpinner">
-                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                        <span class="sr-only">Generating...</span>
-                    </div>
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
                     <h5 class="mt-3">Algoritma Genetika Sedang Bekerja...</h5>
-                    <p class="text-muted">Sedang mengoptimalkan jadwal untuk menghindari bentrok personil dan distribusi yang seimbang</p>
-                    <div class="progress mt-3" style="width: 300px; margin: 0 auto;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                             role="progressbar" style="width: 100%"></div>
-                    </div>
+                    <p class="text-muted">Mengoptimalkan jadwal agar distribusi seimbang</p>
                 </div>
 
-                {{-- Statistik Algoritma Genetika --}}
-                @if(isset($generationStats) && $generationStats)
-                <div class="stats-card" id="statsCard">
-                    <h5><i class="fas fa-chart-line"></i> Statistik Algoritma Genetika</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <span><i class="fas fa-layer-group"></i> Generasi:</span>
-                                <strong>{{ $generationStats['generations'] }}</strong>
-                            </div>
-                            <div class="stat-item">
-                                <span><i class="fas fa-clock"></i> Waktu Eksekusi:</span>
-                                <strong>{{ $generationStats['execution_time'] }}s</strong>
-                            </div>
-                            <div class="stat-item">
-                                <span><i class="fas fa-trophy"></i> Fitness Terbaik:</span>
-                                <strong>{{ number_format($generationStats['best_fitness'], 1) }}</strong>
+                {{-- Preview Hasil Generate (sebelum disimpan) --}}
+                @if(session('generated_jadwal') && $selectedPeriode)
+                    @php 
+                        $jadwalPreview = session('generated_jadwal');
+                        $currentPeriode = $periodes->firstWhere('nama_periode', $selectedPeriode);
+                    @endphp
+                    <div class="preview-table" id="previewContainer">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-eye text-info"></i> Preview Jadwal: {{ $currentPeriode->nama_periode ?? 'Unknown' }}</h5>
+                            <div>
+                                <form action="{{ route('generate.jadwal') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <input type="hidden" name="periode" value="{{ $selectedPeriode }}">
+                                    <button type="submit" class="btn btn-warning btn-regenerate mr-2">
+                                        <i class="fas fa-redo"></i> Generate
+                                    </button>
+                                </form>
+                                <form action="{{ route('generate.jadwal.save') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <input type="hidden" name="periode" value="{{ $selectedPeriode }}">
+                                    <button type="submit" class="btn btn-success btn-save" id="simpanJadwalBtn">
+                                        <i class="fas fa-save"></i> Simpan ke Database
+                                    </button>
+                                </form>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <span><i class="fas fa-church"></i> Total Ibadah:</span>
-                                <strong>{{ $generationStats['total_ibadah'] }}</strong>
-                            </div>
-                            <div class="stat-item">
-                                <span><i class="fas fa-users"></i> Total Pemain:</span>
-                                <strong>{{ $generationStats['total_pemain'] }}</strong>
-                            </div>
-                            <div class="stat-item">
-                                <span><i class="fas fa-check-circle"></i> Status:</span>
-                                <strong class="text-light">
-                                    <i class="fas fa-check"></i> Optimisasi Berhasil
-                                </strong>
-                            </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Ini adalah preview jadwal hasil generate untuk periode <strong>{{ $currentPeriode->nama_periode ?? 'Unknown' }}</strong>. 
+                            Silakan review terlebih dahulu sebelum menyimpan ke database.
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover text-center align-middle">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Ibadah</th>
+                                        <th>Tanggal</th>
+                                        <th>Jam</th>
+                                        <th>Personil</th>
+                                        <th>Alat Musik</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php $no = 1; @endphp
+                                    @foreach($jadwalPreview as $ibadah)
+                                        @php
+                                            $tanggal = \Carbon\Carbon::parse($ibadah['waktu_ibadah'])->format('d-m-Y');
+                                            $jam = \Carbon\Carbon::parse($ibadah['waktu_ibadah'])->format('H:i');
+                                            $rowspan = count($ibadah['alat_assignments']);
+                                        @endphp
+                                        
+                                        @foreach($ibadah['alat_assignments'] as $index => $assignment)
+                                            <tr>
+                                                @if($index == 0)
+                                                    <td rowspan="{{ $rowspan }}">{{ $no++ }}</td>
+                                                    <td rowspan="{{ $rowspan }}" class="font-weight-bold">{{ $ibadah['nama_ibadah'] }}</td>
+                                                    <td rowspan="{{ $rowspan }}"><i class="fas fa-calendar-alt text-primary"></i> {{ $tanggal }}</td>
+                                                    <td rowspan="{{ $rowspan }}"><i class="fas fa-clock text-success"></i> {{ $jam }}</td>
+                                                @endif
+                                                <td>{{ $assignment['nama_pemain'] }}</td>
+                                                <td>{{ $assignment['nama_alat'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
                 @endif
 
-                {{-- Tabel hasil generate --}}
-                <div id="jadwalTableContainer" style="{{ empty($jadwal) ? 'display:none;' : '' }}">
-                    @if(!empty($jadwal))
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">
-                            <i class="fas fa-calendar-check text-success"></i> 
-                            Jadwal Hasil Generate ({{ count($jadwal) }} Ibadah)
-                        </h5>
-                        <button class="btn btn-success" id="simpanJadwalBtn">
-                            <i class="fas fa-save"></i> Simpan Jadwal
-                        </button>
-                    </div>
-                    @endif
-                    
-                    <div class="table-responsive mb-3">
-                        <table class="table table-bordered table-striped table-hover" id="jadwalTable">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th width="5%" class="text-center">No</th>
-                                    <th width="15%">Periode</th>
-                                    <th width="25%">Nama Ibadah</th>
-                                    <th width="15%">Waktu Ibadah</th>
-                                    <th width="25%">Personil</th>
-                                    <th width="15%">Alat Musik</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($jadwal as $index => $j)
-                                <tr>
-                                    <td class="text-center font-weight-bold">{{ $index + 1 }}</td>
-                                    <td>
-                                        <span class="badge badge-info">{{ $j['periode'] }}</span>
-                                    </td>
-                                    <td class="font-weight-bold">{{ $j['nama_ibadah'] }}</td>
-                                    <td>
-                                        <i class="fas fa-clock text-primary"></i>
-                                        {{ \Carbon\Carbon::parse($j['waktu_ibadah'])->format('d-m-Y H:i') }}
-                                    </td>
-                                    <td>
-                                        <span class="badge-personil">
-                                            <i class="fas fa-users"></i> {{ $j['jumlah_personil'] ?? 'N/A' }}
-                                        </span>
-                                        <div class="mt-1 small">{{ $j['personil'] }}</div>
-                                    </td>
-                                    <td>
-                                        <i class="fas fa-music text-warning"></i>
-                                        {{ $j['alat'] ?: 'Tidak ada' }}
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="fas fa-calendar-times fa-2x mb-2"></i>
-                                        <br>Belum ada jadwal yang digenerate
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </div>
         </div>
 
-        {{-- Card kedua: Data Jadwal yang Telah Ditambahkan --}}
+        {{-- Card kedua: Data Jadwal yang Telah Tersimpan --}}
         <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h4><i class="fas fa-database"></i> Data Jadwal yang Telah Tersimpan</h4>
+                <h4><i class="fas fa-database"></i> Data Jadwal yang Tersimpan</h4>
                 <div class="d-flex align-items-center">
                     @if(!empty($jadwalTersimpan) && count($jadwalTersimpan) > 0)
-                    <span class="badge badge-primary mr-3">{{ count($jadwalTersimpan) }} Data</span>
+                        <span class="badge badge-primary mr-3">{{ count($jadwalTersimpan) }} Data</span>
                     @endif
                     <div class="input-group" style="width: 300px;">
                         <input type="text" class="form-control" placeholder="Cari data jadwal..." id="searchInput">
@@ -273,257 +308,678 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover" id="jadwalSavedTable">
-                        <thead class="thead-light">
-                            <tr>
-                                <th width="5%" class="text-center">No</th>
-                                <th width="15%">Periode</th>
-                                <th width="25%">Nama Ibadah</th>
-                                <th width="15%">Waktu Ibadah</th>
-                                <th width="25%">Personil</th>
-                                <th width="15%">Alat Musik</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($jadwalTersimpan as $index => $j)
-                            <tr>
-                                <td class="text-center font-weight-bold">{{ $index + 1 }}</td>
-                                <td>
-                                    <span class="badge badge-secondary">{{ $j->periode }}</span>
-                                </td>
-                                <td class="font-weight-bold">{{ $j->nama_ibadah }}</td>
-                                <td>
-                                    <i class="fas fa-clock text-primary"></i>
-                                    {{ \Carbon\Carbon::parse($j->waktu_ibadah)->format('d-m-Y H:i') }}
-                                </td>
-                                <td>
-                                    <span class="badge-personil">
-                                        <i class="fas fa-users"></i> {{ $j->jumlah_personil }}
-                                    </span>
-                                    <div class="mt-1 small">{{ $j->personil }}</div>
-                                </td>
-                                <td>
-                                    <i class="fas fa-music text-warning"></i>
-                                    {{ $j->alat_musik ?: 'Tidak ada' }}
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-2x mb-2"></i>
-                                    <br>Belum ada jadwal yang disimpan
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                @if($jadwalTersimpan->isEmpty())
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Belum ada jadwal yang tersimpan</h5>
+                        <p class="text-muted">Generate jadwal terlebih dahulu untuk melihat data di sini</p>
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover" id="jadwalSavedTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Periode</th>
+                                    <th>Nama Ibadah</th>
+                                    <th>Tanggal</th>
+                                    <th>Jam</th>
+                                    <th>Personil</th>
+                                    <th>Alat Musik</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @php
+                                $grouped = collect($jadwalTersimpan)->groupBy(function($item) {
+                                    return $item->nama_ibadah.'|'.$item->waktu_ibadah;
+                                });
+                                $rowNumber = 1;
+                            @endphp
+
+                            @foreach($grouped as $groupKey => $items)
+                                @php
+                                    [$namaIbadah, $waktuIbadah] = explode('|', $groupKey);
+                                    $rowspan = count($items);
+                                    $tanggal = \Carbon\Carbon::parse($waktuIbadah)->format('d-m-Y');
+                                    $jam = \Carbon\Carbon::parse($waktuIbadah)->format('H:i');
+                                @endphp
+
+                                @foreach($items as $idx => $j)
+                                    <tr>
+                                        @if($idx == 0)
+                                            <td rowspan="{{ $rowspan }}">{{ $rowNumber++ }}</td>
+                                            <td rowspan="{{ $rowspan }}"><span class="badge badge-secondary">{{ $j->nama_periode }}</span></td>
+                                            <td rowspan="{{ $rowspan }}" class="font-weight-bold">{{ $namaIbadah }}</td>
+                                            <td rowspan="{{ $rowspan }}"><i class="fas fa-calendar-alt text-primary"></i> {{ $tanggal }}</td>
+                                            <td rowspan="{{ $rowspan }}"><i class="fas fa-clock text-success"></i> {{ $jam }}</td>
+                                        @endif
+                                        <td>{{ $j->nama_pemain }}</td>
+                                        <td>{{ $j->nama_alat ?: 'Tidak ada' }}</td>
+                                    </tr>
+                                @endforeach
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
         </div>
 
-    </div>
-</div>
-
-{{-- Modal Konfirmasi Simpan --}}
-<div class="modal fade" id="simpanModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-save"></i> Konfirmasi Simpan Jadwal</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Apakah Anda yakin ingin menyimpan jadwal yang telah digenerate ini?</p>
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Perhatian:</strong> Jika sudah ada jadwal untuk periode yang sama, maka jadwal lama akan ditimpa.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-success" id="confirmSimpan">
-                    <i class="fas fa-save"></i> Ya, Simpan
-                </button>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
 
-
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 $(document).ready(function() {
-    // Initialize DataTables
-    let jadwalTable = null;
-    let savedTable = null;
+    // Variabel dari server
+    var selectedPeriode = @json($selectedPeriode);
+    var jadwalTersimpanCount = {{ $jadwalTersimpan->count() }};
+    var hasGeneratedJadwal = {{ session()->has('generated_jadwal') ? 'true' : 'false' }};
+    var hasGeneratedJadwalLastPeriod = {{ session()->has('last_generated_periode') ? 'true' : 'false' }};
+    var lastGeneratedPeriode = @json(session('last_generated_periode'));
 
-    function initializeTables() {
-        if (jadwalTable) {
-            jadwalTable.destroy();
-        }
-        if (savedTable) {
-            savedTable.destroy();
-        }
-
-        jadwalTable = $('#jadwalTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-            },
-            "pageLength": 10,
-            "responsive": true,
-            "order": [[3, 'asc']] // Sort by waktu ibadah
-        });
-
-        savedTable = $('#jadwalSavedTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-            },
-            "pageLength": 10,
-            "responsive": true,
-            "order": [[3, 'asc']] // Sort by waktu ibadah
+    // Jika periode terpilih, tapi tidak ada data tersimpan untuk periode itu,
+    // dan sebelumnya ada hasil generate periode lain, maka otomatis generate ulang
+    if (selectedPeriode && jadwalTersimpanCount === 0 && hasGeneratedJadwalLastPeriod && lastGeneratedPeriode !== selectedPeriode) {
+        Swal.fire({
+            title: 'Data Tidak Ditemukan',
+            text: `Tidak ada data jadwal tersimpan untuk periode "${selectedPeriode}". Sistem akan melakukan generate ulang secara otomatis.`,
+            icon: 'info',
+            timer: 4000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            didClose: () => {
+                // Submit form generate otomatis dengan periode terpilih
+                $('<form>', {
+                    'method': 'POST',
+                    'action': '{{ route("generate.jadwal") }}'
+                })
+                .append($('<input>', {
+                    'type': 'hidden',
+                    'name': '_token',
+                    'value': '{{ csrf_token() }}'
+                }))
+                .append($('<input>', {
+                    'type': 'hidden',
+                    'name': 'periode',
+                    'value': selectedPeriode
+                }))
+                .appendTo('body')
+                .submit();
+            }
         });
     }
 
-    // Initialize tables on page load
-    initializeTables();
+    // ============ SUCCESS NOTIFICATIONS ============
+    @if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: '{{ session('success') }}',
+        showConfirmButton: true,
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#28a745',
+        timer: 5000,
+        timerProgressBar: true,
+        toast: false,
+        position: 'center'
+    });
+    @endif
 
-    // Form Generate Handler
+    // ============ ERROR NOTIFICATIONS ============
+    @if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops! Terjadi Kesalahan',
+        text: '{{ session('error') }}',
+        showConfirmButton: true,
+        confirmButtonText: 'Tutup',
+        confirmButtonColor: '#dc3545',
+        footer: '<small>Silakan coba lagi atau hubungi administrator</small>'
+    });
+    @endif
+
+    // ============ FORM VALIDATION ============
     $('#generateForm').on('submit', function(e) {
-        const periodeValue = $('#periode').val();
+        var periode = $('#periode').val();
         
-        if (!periodeValue) {
+        if (!periode) {
             e.preventDefault();
             Swal.fire({
                 icon: 'warning',
                 title: 'Periode Belum Dipilih',
                 text: 'Silakan pilih periode layanan terlebih dahulu!',
-                confirmButtonColor: '#007bff'
+                showConfirmButton: true,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ffc107'
             });
             return false;
         }
 
-        // Show loading spinner
-        $('#loadingSpinner').show();
+        // Show loading notification
         $('#generateBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating...');
-        $('#jadwalTableContainer').hide();
-        $('#statsCard').hide();
-
-        // Submit form (akan refresh page dengan hasil)
-        return true;
-    });
-
-    // Show stats and table if data exists
-    @if(!empty($jadwal))
-        $('#jadwalTableContainer').show();
-        @if(isset($generationStats))
-            $('#statsCard').show();
-        @endif
-    @endif
-
-    // Simpan Jadwal Handler
-    $('#simpanJadwalBtn').on('click', function() {
-        const periodeId = $('#periode').val();
+        $('#loadingSpinner').show();
         
-        if (!periodeId) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Periode tidak ditemukan!',
-            });
-            return;
-        }
-
-        $('#simpanModal').modal('show');
-    });
-
-    // Confirm Simpan
-    $('#confirmSimpan').on('click', function() {
-        const periodeId = $('#periode').val();
-        
-        // Collect jadwal data
-        const jadwalData = [];
-        @if(!empty($jadwal))
-            @foreach($jadwal as $j)
-                jadwalData.push({
-                    ibadah_id: {{ $j['ibadah_id'] ?? 'null' }},
-                    personil: "{{ addslashes($j['personil']) }}",
-                    alat_musik: "{{ addslashes($j['alat']) }}",
-                    pemain_ids: @json($j['pemain_ids'] ?? [])
-                });
-            @endforeach
-        @endif
-
-        // Show loading
-        $('#confirmSimpan').html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...').prop('disabled', true);
-
-        // AJAX Request to save
-        $.ajax({
-            url: "{{ route('generate.jadwal.simpan') }}",
-            method: 'POST',
-            data: {
-                _token: "{{ csrf_token() }}",
-                periode_id: periodeId,
-                jadwal_data: jadwalData
-            },
-            success: function(response) {
-                $('#simpanModal').modal('hide');
+        // Loading notification dengan progress
+        Swal.fire({
+            title: 'Algoritma Genetika Sedang Bekerja...',
+            html: `
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                    <p class="mb-2">Mengoptimalkan distribusi jadwal untuk periode <strong>${$('#periode option:selected').text()}</strong></p>
+                    <div class="progress mt-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             style="width: 0%" id="progressBar"></div>
+                    </div>
+                </div>
+            `,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                // Simulate progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 90) progress = 90;
+                    $('#progressBar').css('width', progress + '%');
+                }, 200);
                 
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: response.message,
-                        confirmButtonColor: '#28a745'
-                    }).then(() => {
-                        // Reload page to show updated saved schedules
-                        window.location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: response.message,
-                    });
-                }
-            },
-            error: function(xhr) {
-                $('#simpanModal').modal('hide');
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'Terjadi kesalahan saat menyimpan jadwal.',
-                });
-                console.error(xhr.responseText);
-            },
-            complete: function() {
-                $('#confirmSimpan').html('<i class="fas fa-save"></i> Ya, Simpan').prop('disabled', false);
+                // Store interval untuk clear nanti
+                window.loadingInterval = interval;
             }
         });
     });
 
-    // Search functionality for saved table
-    $('#searchInput').on('keyup', function() {
-        savedTable.search(this.value).draw();
+    // ============ SAVE CONFIRMATION ============
+    $('#simpanJadwalBtn').on('click', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var periodeName = '{{ $selectedPeriode && isset($currentPeriode) ? $currentPeriode->nama_periode : "jadwal ini" }}';
+
+        Swal.fire({
+            title: 'Konfirmasi Simpan Jadwal',
+            html: `
+                <div class="text-left">
+                    <p>Apakah Anda yakin ingin menyimpan jadwal untuk periode:</p>
+                    <div class="alert alert-info text-center">
+                        <strong>${periodeName}</strong>
+                    </div>
+                    <div class="text-danger small">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Perhatian:</strong> Jadwal yang sudah tersimpan tidak dapat diubah atau dihapus.
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-save"></i> Ya, Simpan',
+            cancelButtonText: '<i class="fas fa-times"></i> Batal',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+                
+                Swal.fire({
+                    title: 'Menyimpan Jadwal...',
+                    text: 'Mohon tunggu sebentar',
+                    icon: 'info',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                btn.closest('form').submit();
+            }
+        });
     });
 
-    // Period change handler
+    // ============ REGENERATE CONFIRMATION ============
+    $('.btn-regenerate').on('click', function(e) {
+        e.preventDefault();
+        var form = $(this).closest('form');
+        var periodeName = '{{ $selectedPeriode && isset($currentPeriode) ? $currentPeriode->nama_periode : "" }}';
+
+        Swal.fire({
+            title: 'Generate Ulang Jadwal?',
+            html: `
+                <div class="text-left">
+                    <p>Anda akan men-generate ulang jadwal untuk periode:</p>
+                    <div class="alert alert-warning text-center">
+                        <strong>${periodeName}</strong>
+                    </div>
+                    <p class="text-muted small">
+                        <i class="fas fa-info-circle"></i>
+                        Jadwal yang sudah di-preview akan diganti dengan hasil generate yang baru.
+                    </p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-redo"></i> Ya, Generate Ulang',
+            cancelButtonText: '<i class="fas fa-times"></i> Batal',
+            confirmButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+
+    // ============ WELCOME NOTIFICATION ============
+    @if(!session('generated_jadwal') && !$selectedPeriode)
+    Swal.fire({
+        title: 'Selamat Datang!',
+        html: `
+            <div class="text-left">
+                <p>Gunakan <strong>Algoritma Genetika</strong> untuk mengoptimalkan jadwal ibadah Anda.</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Fitur Utama:</strong>
+                    <ul class="text-left mt-2 mb-0">
+                        <li>Distribusi personil yang seimbang</li>
+                        <li>Optimisasi otomatis</li>
+                        <li>Preview sebelum menyimpan</li>
+                    </ul>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Mulai Generate',
+        confirmButtonColor: '#007bff',
+        showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+        }
+    });
+    @endif
+
+    // ============ PERIODE SELECTION NOTIFICATION ============
+    @if($selectedPeriode && !session('generated_jadwal'))
+    Swal.fire({
+        title: 'Periode Terpilih',
+        html: `
+            <div class="text-center">
+                <div class="alert alert-success">
+                    <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                    <h5>{{ $periodes->firstWhere('nama_periode', $selectedPeriode)->nama_periode ?? 'Unknown' }}</h5>
+                </div>
+                <p>Klik tombol <strong>"Generate"</strong> untuk memulai optimisasi jadwal.</p>
+            </div>
+        `,
+        icon: 'success',
+        confirmButtonText: 'Siap Generate!',
+        confirmButtonColor: '#28a745',
+        timer: 3000,
+        timerProgressBar: true
+    });
+    @endif
+
+    // ============ UTILITY FUNCTIONS ============
+    function showToast(icon, title, text) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: title,
+            text: text,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    }
+
+    // ============ UTILITY FUNCTIONS ============
+    
+    // Function untuk show toast notification
+    function showToast(icon, title, text) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: title,
+            text: text,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    }
+
+    // Function untuk konfirmasi action dengan custom message
+    function confirmAction(title, text, confirmText, cancelText, callback) {
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed && typeof callback === 'function') {
+                callback();
+            }
+        });
+    }
+
+    // ============ ADDITIONAL FEATURES ============
+    
+  
+
+    // ============ FORM SUBMISSIONS ============
+    
+    // Loading spinner dengan SweetAlert untuk form generate
+    $('#generateForm').on('submit', function(e) {
+        var periode = $('#periode').val();
+        
+        if (!periode) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Periode Belum Dipilih',
+                text: 'Silakan pilih periode layanan terlebih dahulu!',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ffc107'
+            });
+            return false;
+        }
+
+        // Disable button dan show loading
+        $('#generateBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating...');
+        $('#loadingSpinner').show();
+        
+        // Show SweetAlert loading
+        Swal.fire({
+            title: 'Memproses Algoritma Genetika',
+            html: `
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                    <p class="mb-2">Mengoptimalkan jadwal untuk periode:</p>
+                    <div class="alert alert-info">
+                        <strong>${$('#periode option:selected').text()}</strong>
+                    </div>
+                    <div class="progress mt-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-gradient" 
+                             style="width: 0%" id="progressBar"></div>
+                    </div>
+                </div>
+            `,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            background: '#f8f9fa',
+            didOpen: () => {
+                // Animate progress bar
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 12;
+                    if (progress > 85) progress = 85;
+                    $('#progressBar').css('width', progress + '%');
+                }, 300);
+                
+                window.loadingInterval = interval;
+            }
+        });
+    });
+
+    // ============ SAVE TO DATABASE ============
+    
+    $('#simpanJadwalBtn').on('click', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var periodeName = '{{ $selectedPeriode && isset($currentPeriode) ? $currentPeriode->nama_periode : "jadwal ini" }}';
+        var totalData = $('#previewContainer tbody tr').length;
+
+        Swal.fire({
+            title: 'Konfirmasi Simpan Jadwal',
+            html: `
+                <div class="text-left">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-database"></i>
+                        <strong>Periode:</strong> ${periodeName}
+                    </div>
+                    <p class="text-center"><strong>Lanjutkan penyimpanan?</strong></p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-save"></i> Ya, Simpan Sekarang',
+            cancelButtonText: '<i class="fas fa-times"></i> Batal',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545',
+            reverseButtons: true,
+            focusCancel: true,
+            customClass: {
+                confirmButton: 'btn btn-success btn-lg',
+                cancelButton: 'btn btn-secondary btn-lg'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show saving progress
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+                
+                Swal.fire({
+                    title: 'Menyimpan ke Database...',
+                    html: `
+                        <div class="text-center">
+                            <div class="spinner-grow text-success mb-3"></div>
+                            <p>Menyimpan ${totalData} data jadwal</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                                     style="width: 100%"></div>
+                            </div>
+                        </div>
+                    `,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false
+                });
+                
+                // Submit form
+                setTimeout(() => {
+                    btn.closest('form').submit();
+                }, 1000);
+            }
+        });
+    });
+
+    // ============ AUTO HIDE ALERTS ============
+    
+    // Auto hide bootstrap alerts dengan fade effect
+    setTimeout(function() {
+        $('.alert:not(.alert-permanent)').each(function() {
+            $(this).fadeOut('slow', function() {
+                $(this).remove();
+            });
+        });
+    }, 8000);
+
+    // ============ PERIODE CHANGE HANDLER ============
+    
     $('#periode').on('change', function() {
-        const selectedText = $(this).find('option:selected').text();
-        if ($(this).val()) {
-            $('#generateBtn').removeClass('btn-secondary').addClass('btn-primary');
-        } else {
-            $('#generateBtn').removeClass('btn-primary').addClass('btn-secondary');
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        
+        if (selectedValue) {
+            // Show notification periode berubah
+            showToast('info', 'Periode Dipilih', `Periode "${selectedText}" telah dipilih`);
+            
+            // Redirect dengan loading
+            setTimeout(() => {
+                window.location.href = '{{ route("generate.jadwal") }}' + '?periode=' + selectedValue;
+            }, 1000);
         }
     });
 
-    // Hide loading on page load
-    $('#loadingSpinner').hide();
-    $('#generateBtn').prop('disabled', false).html('<i class="fas fa-dna"></i> Generate Jadwal');
-});
-</script>
+    // ============ PREVIEW SCROLL ============
+    
+    // Auto scroll ke preview dengan notification
+    @if(session('generated_jadwal'))
+    setTimeout(function() {
+        Swal.fire({
+            toast: true,
+            position: 'top',
+            icon: 'success',
+            title: 'Jadwal berhasil di-generate!',
+            text: 'Scroll ke bawah untuk melihat preview',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        
+        // Auto scroll
+        setTimeout(() => {
+            $('html, body').animate({
+                scrollTop: $('#previewContainer').offset().top - 100
+            }, 1500);
+        }, 500);
+    }, 800);
+    @endif
 
-{{-- SweetAlert2 CDN --}}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    // ============ KEYBOARD SHORTCUTS ============
+    
+    // Keyboard shortcuts dengan notification
+    $(document).on('keydown', function(e) {
+        // Ctrl + G untuk generate
+        if (e.ctrlKey && e.key === 'g') {
+            e.preventDefault();
+            if ($('#periode').val()) {
+                $('#generateForm').submit();
+            } else {
+                showToast('warning', 'Shortcut', 'Pilih periode terlebih dahulu (Ctrl+G)');
+            }
+        }
+        
+        // Ctrl + S untuk save (jika ada preview)
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            if ($('#simpanJadwalBtn').length) {
+                $('#simpanJadwalBtn').click();
+            } else {
+                showToast('info', 'Shortcut', 'Tidak ada jadwal untuk disimpan (Ctrl+S)');
+            }
+        }
+    });
+
+    // ============ NETWORK ERROR HANDLING ============
+    
+    // Handle network errors
+    window.addEventListener('beforeunload', function() {
+        if (window.loadingInterval) {
+            clearInterval(window.loadingInterval);
+        }
+    });
+
+    // ============ DATA VALIDATION NOTIFICATIONS ============
+    
+    // Notification jika data kosong
+    @if($jadwalTersimpan->isEmpty() && !session('generated_jadwal'))
+    setTimeout(function() {
+        showToast('info', 'Info', 'Belum ada data jadwal. Mulai dengan generate jadwal baru!');
+    }, 2000);
+    @endif
+
+    // ============ SUCCESS AFTER SAVE ============
+    
+    // Notification khusus setelah berhasil save
+    @if(session('jadwal_saved'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Jadwal Berhasil Disimpan!',
+        html: `
+            <div class="text-center">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <p>Jadwal untuk periode <strong>{{ session('saved_periode') }}</strong> telah tersimpan ke database.</p>
+                <div class="alert alert-success">
+                    <i class="fas fa-database"></i>
+                    Data dapat dilihat di tabel "Data Jadwal yang Tersimpan" di bawah.
+                </div>
+            </div>
+        `,
+        showConfirmButton: true,
+        confirmButtonText: 'Lihat Data Tersimpan',
+        confirmButtonColor: '#28a745',
+        showClass: {
+            popup: 'animate__animated animate__bounceIn'
+        }
+    }).then(() => {
+        // Scroll ke tabel data tersimpan
+        $('html, body').animate({
+            scrollTop: $('#jadwalSavedTable').offset().top - 100
+        }, 1000);
+    });
+    @endif
+
+});
+
+// ============ GLOBAL HELPER FUNCTIONS ============
+
+// Function untuk show loading dengan custom message
+function showCustomLoading(title, message) {
+    Swal.fire({
+        title: title,
+        text: message,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+}
+
+// Function untuk close loading
+function closeLoading() {
+    Swal.close();
+    if (window.loadingInterval) {
+        clearInterval(window.loadingInterval);
+    }
+}
+
+// Function untuk error handling
+function showError(title, message, footer = null) {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: message,
+        footer: footer,
+        confirmButtonText: 'Tutup',
+        confirmButtonColor: '#dc3545'
+    });
+}
+
+// Function untuk success notification dengan action
+function showSuccessWithAction(title, message, actionText, actionCallback) {
+    Swal.fire({
+        icon: 'success',
+        title: title,
+        text: message,
+        showCancelButton: true,
+        confirmButtonText: actionText,
+        cancelButtonText: 'Tutup',
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d'
+    }).then((result) => {
+        if (result.isConfirmed && typeof actionCallback === 'function') {
+            actionCallback();
+        }
+    });
+}
+</script>
 @endpush
+
+

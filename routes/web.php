@@ -66,10 +66,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
-// Halaman generate jadwal (GET untuk pilih periode)
 Route::get('/jadwal/generate', [GenerateJadwalController::class, 'index'])->name('generate.jadwal');
-
-// Simpan hasil generate ke DB (POST via AJAX)
-Route::post('/jadwal/generate/simpan', [GenerateJadwalController::class, 'simpanJadwal'])->name('generate.jadwal.simpan');
-Route::get('/generate', [GenerateJadwalController::class, 'index'])->name('generate.index');
-Route::post('/generate/proses', [GenerateJadwalController::class, 'proses'])->name('generate.proses');
+Route::post('/jadwal/generate', [GenerateJadwalController::class, 'generate'])->name('generate.jadwal');
+Route::post('/jadwal/generate/save', [GenerateJadwalController::class, 'saveGenerated'])->name('generate.jadwal.save');

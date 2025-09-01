@@ -12,9 +12,16 @@ class PemainMusik extends Model
     protected $table = 'pemain_musik';
     protected $primaryKey = 'id_pemain';
     protected $fillable = ['nama_pemain', 'gender', 'foto'];
-    
-    public function alat()
-    {
-        return $this->belongsToMany(AlatMusik::class, 'alat_pemain', 'pemain_id', 'alat_id');
-    }
+        
+
+    public function alatMusik()
+{
+    return $this->belongsToMany(
+        AlatMusik::class, 'alat_pemain', 'pemain_id', 'alat_id', 'id_pemain', 'id_alat'
+    );
+}
+public function alat()
+{
+    return $this->belongsToMany(AlatMusik::class, 'alat_pemain', 'pemain_id', 'alat_id');
+}
 }
